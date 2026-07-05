@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using proyectonew.Models;
-using System.Collections.Generic;
 
 namespace proyectonew.Data
 {
@@ -10,9 +9,14 @@ namespace proyectonew.Data
         {
         }
 
-        public DbSet<Vuelo> Vuelos { get; set; }
+        public DbSet<Vuelo> Vuelo { get; set; }
         public DbSet<Aerolinea> Aerolineas { get; set; }
         public DbSet<Aeropuerto> Aeropuertos { get; set; }
         public DbSet<EstadoVuelo> EstadosVuelo { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Vuelo>().ToTable("Vuelos");
+        }
     }
 }

@@ -1,0 +1,37 @@
+﻿@page
+@model proyectonew.Pages.Vuelos.IndexModel
+
+<h2>Vuelos Registrados</h2>
+
+<a href="/Vuelos/Crear" class="btn btn-primary mb-3">+ Nuevo Vuelo</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Numero de Vuelo</th>
+            <th>Aerolinea</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Horario</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var vuelo in Model.Vuelos)
+        {
+            <tr>
+                <td>@vuelo.NumeroVuelo</td>b 
+                <td>@vuelo.AerolineaId</td>
+                <td>@vuelo.AeropuertoOrigenId</td>
+                <td>@vuelo.AeropuertoDestinoId</td>
+                <td>@vuelo.HorarioProgramado</td>
+                <td>@vuelo.EstadoVueloId</td>
+                <td>
+                    <a href="/Vuelos/Editar?id=@vuelo.VueloId" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="/Vuelos/Eliminar?id=@vuelo.VueloId" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

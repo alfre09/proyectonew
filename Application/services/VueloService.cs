@@ -17,7 +17,7 @@ namespace proyectonew.Application.Services
 
         public async Task<List<VueloDto>> ObtenerTodosAsync()
         {
-            return await _context.Vuelos
+            return await _context.Vuelo
                 .Select(v => new VueloDto
                 {
                     VueloId = v.VueloId,
@@ -34,7 +34,7 @@ namespace proyectonew.Application.Services
 
         public async Task<VueloDto?> ObtenerPorIdAsync(int id)
         {
-            return await _context.Vuelos
+            return await _context.Vuelo
                 .Where(v => v.VueloId == id)
                 .Select(v => new VueloDto
                 {
@@ -63,13 +63,13 @@ namespace proyectonew.Application.Services
                 FechaCreacion = DateTime.Now
             };
 
-            _context.Vuelos.Add(vuelo);
+            _context.Vuelo.Add(vuelo);
             await _context.SaveChangesAsync();
         }
 
         public async Task ActualizarAsync(VueloDto vueloDto)
         {
-            var vuelo = await _context.Vuelos.FindAsync(vueloDto.VueloId);
+            var vuelo = await _context.Vuelo.FindAsync(vueloDto.VueloId);
 
             if (vuelo == null)
                 return;
@@ -86,12 +86,12 @@ namespace proyectonew.Application.Services
 
         public async Task EliminarAsync(int id)
         {
-            var vuelo = await _context.Vuelos.FindAsync(id);
+            var vuelo = await _context.Vuelo.FindAsync(id);
 
             if (vuelo == null)
                 return;
 
-            _context.Vuelos.Remove(vuelo);
+            _context.Vuelo.Remove(vuelo);
             await _context.SaveChangesAsync();
         }
     }

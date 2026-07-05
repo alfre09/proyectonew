@@ -1,9 +1,11 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace proyectonew.Application.Dtos
 {
     public class VueloDto
+
     {
+        [Key]
         public int VueloId { get; set; }
 
         public string NumeroVuelo { get; set; }
