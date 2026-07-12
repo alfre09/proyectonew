@@ -78,6 +78,67 @@ namespace proyectonew.Migrations
                     b.ToTable("Aeropuertos");
                 });
 
+            modelBuilder.Entity("proyectonew.Models.Auditoria", b =>
+                {
+                    b.Property<int>("AuditoriaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditoriaId"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Tabla")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("AuditoriaId");
+
+                    b.ToTable("Auditorias");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.CambioOperativo", b =>
+                {
+                    b.Property<int>("CambioOperativoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CambioOperativoId"));
+
+                    b.Property<string>("Causa")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("FechaCambio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TipoCambio")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("VueloId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CambioOperativoId");
+
+                    b.HasIndex("VueloId");
+
+                    b.ToTable("CambiosOperativos");
+                });
+
             modelBuilder.Entity("proyectonew.Models.EstadoVuelo", b =>
                 {
                     b.Property<int>("EstadoVueloId")
@@ -94,6 +155,92 @@ namespace proyectonew.Migrations
                     b.HasKey("EstadoVueloId");
 
                     b.ToTable("EstadosVuelo");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.HistorialEstadoVuelo", b =>
+                {
+                    b.Property<int>("HistorialEstadoVueloId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HistorialEstadoVueloId"));
+
+                    b.Property<int>("EstadoAnteriorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstadoNuevoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaCambio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VueloId")
+                        .HasColumnType("int");
+
+                    b.HasKey("HistorialEstadoVueloId");
+
+                    b.HasIndex("VueloId");
+
+                    b.ToTable("HistorialEstados");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.Notificacion", b =>
+                {
+                    b.Property<int>("NotificacionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificacionId"));
+
+                    b.Property<DateTime>("FechaEnvio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("VueloId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificacionId");
+
+                    b.HasIndex("VueloId");
+
+                    b.ToTable("Notificaciones");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.Seguimiento", b =>
+                {
+                    b.Property<int>("SeguimientoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SeguimientoId"));
+
+                    b.Property<DateTime>("FechaSeguimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("VueloId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SeguimientoId");
+
+                    b.HasIndex("VueloId");
+
+                    b.ToTable("Seguimientos");
                 });
 
             modelBuilder.Entity("proyectonew.Models.Vuelo", b =>
@@ -127,6 +274,10 @@ namespace proyectonew.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Puerta")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.HasKey("VueloId");
 
                     b.HasIndex("AerolineaId");
@@ -137,7 +288,51 @@ namespace proyectonew.Migrations
 
                     b.HasIndex("EstadoVueloId");
 
-                    b.ToTable("Vuelos");
+                    b.ToTable("Vuelos", (string)null);
+                });
+
+            modelBuilder.Entity("proyectonew.Models.CambioOperativo", b =>
+                {
+                    b.HasOne("proyectonew.Models.Vuelo", "Vuelo")
+                        .WithMany()
+                        .HasForeignKey("VueloId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vuelo");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.HistorialEstadoVuelo", b =>
+                {
+                    b.HasOne("proyectonew.Models.Vuelo", "Vuelo")
+                        .WithMany()
+                        .HasForeignKey("VueloId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vuelo");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.Notificacion", b =>
+                {
+                    b.HasOne("proyectonew.Models.Vuelo", "Vuelo")
+                        .WithMany()
+                        .HasForeignKey("VueloId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vuelo");
+                });
+
+            modelBuilder.Entity("proyectonew.Models.Seguimiento", b =>
+                {
+                    b.HasOne("proyectonew.Models.Vuelo", "Vuelo")
+                        .WithMany()
+                        .HasForeignKey("VueloId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vuelo");
                 });
 
             modelBuilder.Entity("proyectonew.Models.Vuelo", b =>

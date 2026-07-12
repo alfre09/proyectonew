@@ -33,6 +33,9 @@ namespace proyectonew.Models
         [Required]
         public DateTime HorarioProgramado { get; set; }
 
+        [MaxLength(10)]
+        public string? Puerta { get; set; }
+
         [Required]
         public int EstadoVueloId { get; set; }
 

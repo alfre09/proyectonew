@@ -8,6 +8,11 @@ namespace proyectonew.IOC.Dependencies
         public static IServiceCollection AddVueloDependencies(this IServiceCollection services)
         {
             services.AddScoped<IVueloService, VueloService>();
+            services.AddScoped<ISeguimientoService, SeguimientoService>();
+            services.AddScoped<INotificacionService, NotificacionService>();
+            services.AddScoped<IHistorialEstadoVueloService, HistorialEstadoVueloService>();
+            services.AddScoped<ICambioOperativoService, CambioOperativoService>();
+
             return services;
         }
     }
