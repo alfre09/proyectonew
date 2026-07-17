@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using proyectonew.Application.Dtos;
 using proyectonew.Application.Interfaces;
 using proyectonew.Data;
@@ -9,10 +9,12 @@ namespace proyectonew.Application.Services
     public class SeguimientoService : ISeguimientoService
     {
         private readonly SivDbContext _context;
+        private readonly IAuditoriaService _auditoriaService;
 
-        public SeguimientoService(SivDbContext context)
+        public SeguimientoService(SivDbContext context, IAuditoriaService auditoriaService)
         {
             _context = context;
+            _auditoriaService = auditoriaService;
         }
 
         public async Task<List<SeguimientoDto>> ObtenerTodosAsync()
@@ -44,6 +46,21 @@ namespace proyectonew.Application.Services
 
         public async Task CrearAsync(SeguimientoDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Usuario))
+                throw new InvalidOperationException("El seguimiento debe estar asociado a un usuario.");
+
+            // Regla: "El seguimiento de un vuelo debe estar asociado a un identificador válido del vuelo."
+            var existeVuelo = await _context.Vuelo.AnyAsync(v => v.VueloId == dto.VueloId);
+
+            if (!existeVuelo)
+                throw new InvalidOperationException($"No existe un vuelo con id {dto.VueloId}.");
+
+            var yaExiste = await _context.Seguimientos
+                .AnyAsync(s => s.VueloId == dto.VueloId && s.Usuario == dto.Usuario);
+
+            if (yaExiste)
+                throw new InvalidOperationException("Este usuario ya está siguiendo este vuelo.");
+
             var seguimiento = new Seguimiento
             {
                 Usuario = dto.Usuario,
@@ -53,6 +70,12 @@ namespace proyectonew.Application.Services
 
             _context.Seguimientos.Add(seguimiento);
             await _context.SaveChangesAsync();
+
+            dto.SeguimientoId = seguimiento.SeguimientoId;
+            dto.FechaSeguimiento = seguimiento.FechaSeguimiento;
+
+            await _auditoriaService.RegistrarAsync(
+                "Crear", "Seguimientos", $"El usuario {dto.Usuario} inició seguimiento del vuelo {dto.VueloId}.");
         }
 
         public async Task ActualizarAsync(SeguimientoDto dto)
@@ -60,12 +83,20 @@ namespace proyectonew.Application.Services
             var seguimiento = await _context.Seguimientos.FindAsync(dto.SeguimientoId);
 
             if (seguimiento == null)
-                return;
+                throw new InvalidOperationException($"No existe un seguimiento con id {dto.SeguimientoId}.");
+
+            var existeVuelo = await _context.Vuelo.AnyAsync(v => v.VueloId == dto.VueloId);
+
+            if (!existeVuelo)
+                throw new InvalidOperationException($"No existe un vuelo con id {dto.VueloId}.");
 
             seguimiento.Usuario = dto.Usuario;
             seguimiento.VueloId = dto.VueloId;
 
             await _context.SaveChangesAsync();
+
+            await _auditoriaService.RegistrarAsync(
+                "Actualizar", "Seguimientos", $"Se actualizó el seguimiento {seguimiento.SeguimientoId}.");
         }
 
         public async Task EliminarAsync(int id)
@@ -77,6 +108,10 @@ namespace proyectonew.Application.Services
 
             _context.Seguimientos.Remove(seguimiento);
             await _context.SaveChangesAsync();
+
+            await _auditoriaService.RegistrarAsync(
+                "Eliminar", "Seguimientos",
+                $"El usuario {seguimiento.Usuario} dejó de seguir el vuelo {seguimiento.VueloId}.");
         }
     }
 }

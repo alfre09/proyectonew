@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using proyectonew.Application.Base;
 using proyectonew.Application.Dtos;
 using proyectonew.Application.Interfaces;
 using proyectonew.Data;
@@ -11,17 +12,18 @@ namespace proyectonew.Application.Services
         private readonly SivDbContext _context;
         private readonly INotificacionService _notificacionService;
         private readonly IHistorialEstadoVueloService _historialService;
-
-        private const string ESTADO_CANCELADO = "Cancelado";
+        private readonly IAuditoriaService _auditoriaService;
 
         public CambioOperativoService(
             SivDbContext context,
             INotificacionService notificacionService,
-            IHistorialEstadoVueloService historialService)
+            IHistorialEstadoVueloService historialService,
+            IAuditoriaService auditoriaService)
         {
             _context = context;
             _notificacionService = notificacionService;
             _historialService = historialService;
+            _auditoriaService = auditoriaService;
         }
 
         public async Task<List<CambioOperativoDto>> ObtenerTodosAsync()
@@ -64,20 +66,19 @@ namespace proyectonew.Application.Services
             if (vuelo == null)
                 throw new InvalidOperationException($"No existe un vuelo con id {dto.VueloId}.");
 
-            // Regla: "Un vuelo cancelado no puede continuar su ciclo operativo."
-            if (vuelo.EstadoVuelo != null &&
-                vuelo.EstadoVuelo.Nombre.Equals(ESTADO_CANCELADO, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException(
-                    "El vuelo ya está cancelado. No se pueden registrar más cambios operativos sobre él.");
-            }
-
             if (string.IsNullOrWhiteSpace(dto.Causa))
                 throw new InvalidOperationException("Todo cambio operativo debe tener una causa identificable.");
+
+            // Regla: "Un vuelo cancelado no puede continuar su ciclo operativo"
+            // (aplica también a un vuelo ya aterrizado: su ciclo también terminó).
+            if (CicloEstadosVuelo.EsEstadoFinal(vuelo.EstadoVuelo?.Nombre ?? string.Empty))
+                throw new InvalidOperationException(
+                    $"El vuelo está en estado '{vuelo.EstadoVuelo?.Nombre}' y no se pueden registrar más cambios operativos sobre él.");
 
             int estadoAnteriorId = vuelo.EstadoVueloId;
             string valorAnterior;
             string valorNuevo;
+            EstadoVuelo? estadoNuevo = null;
 
             switch (dto.TipoCambio)
             {
@@ -100,25 +101,40 @@ namespace proyectonew.Application.Services
                     valorNuevo = vuelo.Puerta;
                     break;
 
+                case "CambioEstado":
                 case "Cancelacion":
                     if (dto.NuevoEstadoVueloId == null)
-                        throw new InvalidOperationException("Debes indicar el id del estado 'Cancelado'.");
+                        throw new InvalidOperationException("Debes indicar el id del nuevo estado del vuelo.");
+
+                    estadoNuevo = await _context.EstadosVuelo.FindAsync(dto.NuevoEstadoVueloId.Value);
+
+                    if (estadoNuevo == null)
+                        throw new InvalidOperationException($"No existe el estado con id {dto.NuevoEstadoVueloId}.");
+
+                    // Regla: "No se puede avanzar a un estado sin cumplir las condiciones
+                    // del estado anterior." Aquí se valida la secuencia completa, no solo cancelación.
+                    if (dto.TipoCambio == "Cancelacion" &&
+                        !estadoNuevo.Nombre.Equals(CicloEstadosVuelo.ESTADO_CANCELADO, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException(
+                            $"Para el tipo 'Cancelacion' el nuevo estado debe ser '{CicloEstadosVuelo.ESTADO_CANCELADO}'.");
+
+                    CicloEstadosVuelo.ValidarTransicion(vuelo.EstadoVuelo?.Nombre ?? string.Empty, estadoNuevo.Nombre);
 
                     valorAnterior = vuelo.EstadoVuelo?.Nombre ?? vuelo.EstadoVueloId.ToString();
-                    vuelo.EstadoVueloId = dto.NuevoEstadoVueloId.Value;
-                    valorNuevo = "Cancelado";
+                    vuelo.EstadoVueloId = estadoNuevo.EstadoVueloId;
+                    valorNuevo = estadoNuevo.Nombre;
                     break;
 
                 default:
                     throw new InvalidOperationException(
-                        "Tipo de cambio no reconocido. Usa: Retraso, Adelanto, CambioPuerta o Cancelacion.");
+                        "Tipo de cambio no reconocido. Usa: Retraso, Adelanto, CambioPuerta, CambioEstado o Cancelacion.");
             }
 
             // Si el cambio implicó un nuevo estado del vuelo, se registra en el historial.
-            if (dto.NuevoEstadoVueloId.HasValue && dto.NuevoEstadoVueloId.Value != estadoAnteriorId)
+            if (estadoNuevo != null && estadoNuevo.EstadoVueloId != estadoAnteriorId)
             {
                 await _historialService.RegistrarCambioDeEstadoAsync(
-                    vuelo.VueloId, estadoAnteriorId, dto.NuevoEstadoVueloId.Value);
+                    vuelo.VueloId, estadoAnteriorId, estadoNuevo.EstadoVueloId);
             }
 
             var cambioOperativo = new CambioOperativo
@@ -131,6 +147,10 @@ namespace proyectonew.Application.Services
 
             _context.CambiosOperativos.Add(cambioOperativo);
             await _context.SaveChangesAsync();
+
+            await _auditoriaService.RegistrarAsync(
+                "Registrar", "CambiosOperativos",
+                $"Vuelo {vuelo.NumeroVuelo} (id {vuelo.VueloId}): {dto.TipoCambio} de '{valorAnterior}' a '{valorNuevo}'. Causa: {dto.Causa}");
 
             // Regla: "Los cambios relevantes en un vuelo pueden generar notificaciones"
             // y solo llegan a quienes siguen ese vuelo.

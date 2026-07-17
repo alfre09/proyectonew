@@ -1,0 +1,67 @@
+﻿@page
+@model proyectonew.Pages.Vuelos.CrearModel
+@using proyectonew.Models
+
+<h2>Registrar Nuevo Vuelo</h2>
+
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label">Numero de Vuelo</label>
+        <input asp-for="Vuelo.NumeroVuelo" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aerolinea</label>
+        <select asp-for="Vuelo.AerolineaId" class="form-select">
+            @foreach (var a in (List<Aerolinea>)ViewData["Aerolineas"]!)
+            {
+                <option value="@a.AerolineaId">@a.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aeropuerto de Origen</label>
+        <select asp-for="Vuelo.AeropuertoOrigenId" class="form-select">
+            @foreach (var ap in (List<Aeropuerto>)ViewData["Aeropuertos"]!)
+            {
+                <option value="@ap.AeropuertoId">@ap.Nombre (@ap.Codigo)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aeropuerto de Destino</label>
+        <select asp-for="Vuelo.AeropuertoDestinoId" class="form-select">
+            @foreach (var ap in (List<Aeropuerto>)ViewData["Aeropuertos"]!)
+            {
+                <option value="@ap.AeropuertoId">@ap.Nombre (@ap.Codigo)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Horario Programado</label>
+        <input asp-for="Vuelo.HorarioProgramado" type="datetime-local" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Puerta (opcional)</label>
+        <input asp-for="Vuelo.Puerta" class="form-control" placeholder="Ej: B12" />
+    </div>
+
+    <p class="text-muted">
+        Todo vuelo nuevo se registra automáticamente en estado "Programado",
+        según las reglas de negocio del SIV.
+    </p>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="/Vuelos/Index" class="btn btn-secondary">Cancelar</a>
+</form>

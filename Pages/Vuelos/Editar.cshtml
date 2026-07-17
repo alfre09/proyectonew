@@ -1,0 +1,72 @@
+﻿@page
+@model proyectonew.Pages.Vuelos.EditarModel
+@using proyectonew.Models
+
+<h2>Editar Vuelo</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <div asp-validation-summary="All"></div>
+    </div>
+}
+
+<form method="post">
+    <input type="hidden" asp-for="Vuelo.VueloId" />
+
+    <div class="mb-3">
+        <label class="form-label">Numero de Vuelo</label>
+        <input asp-for="Vuelo.NumeroVuelo" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aerolinea</label>
+        <select asp-for="Vuelo.AerolineaId" class="form-select">
+            @foreach (var a in (List<Aerolinea>)ViewData["Aerolineas"]!)
+            {
+                <option value="@a.AerolineaId">@a.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aeropuerto de Origen</label>
+        <select asp-for="Vuelo.AeropuertoOrigenId" class="form-select">
+            @foreach (var ap in (List<Aeropuerto>)ViewData["Aeropuertos"]!)
+            {
+                <option value="@ap.AeropuertoId">@ap.Nombre (@ap.Codigo)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Aeropuerto de Destino</label>
+        <select asp-for="Vuelo.AeropuertoDestinoId" class="form-select">
+            @foreach (var ap in (List<Aeropuerto>)ViewData["Aeropuertos"]!)
+            {
+                <option value="@ap.AeropuertoId">@ap.Nombre (@ap.Codigo)</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Horario Programado</label>
+        <input asp-for="Vuelo.HorarioProgramado" type="datetime-local" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Puerta</label>
+        <input asp-for="Vuelo.Puerta" class="form-control" placeholder="Ej: B12" />
+    </div>
+
+    <input type="hidden" asp-for="Vuelo.EstadoVueloId" />
+    <p class="text-muted">
+        El estado del vuelo ya no se cambia aquí: usa el módulo de Cambios Operativos
+        (api/CambiosOperativos) para retrasos, adelantos, cambios de puerta, avance de
+        estado o cancelación. Así queda validada la secuencia y se notifica a los
+        interesados automáticamente.
+    </p>
+
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    <a href="/Vuelos/Index" class="btn btn-secondary">Cancelar</a>
+</form>

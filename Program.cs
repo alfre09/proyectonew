@@ -4,34 +4,40 @@ using proyectonew.IOC.Dependencies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Agregar servicios Razor Pages
+// Controladores (API REST) y Razor Pages
+builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 
-// Agregar servicios para los Controllers de la API
-builder.Services.AddControllers();
+// Base de datos (SQL Server)
+builder.Services.AddDbContext<SivDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Agregar servicios de Swagger
+// Inyección de dependencias de la capa de aplicación (servicios del SIV)
+builder.Services.AddVueloDependencies();
+
+// Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Conexi�n a la base de datos
-builder.Services.AddDbContext<SivDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("SivDbConnection")));
-
-// Registrar la Business Logic (Inyecci�n de Dependencias)
-builder.Services.AddVueloDependencies();
-
 var app = builder.Build();
 
-// Configurar el pipeline HTTP
+// Aplica automáticamente las migraciones pendientes y siembra el catálogo base
+// (estados de vuelo, aerolíneas y aeropuertos) para poder probar el sistema sin
+// tener que insertar datos manualmente en la base de datos.
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<SivDbContext>();
+    context.Database.Migrate();
+    await SeedData.InicializarAsync(context);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
@@ -39,11 +45,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 app.UseAuthorization();
-app.MapRazorPages();
 
-// Mapear los endpoints de los Controllers de la API
 app.MapControllers();
+app.MapRazorPages();
 
 app.Run();

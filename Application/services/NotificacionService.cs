@@ -9,10 +9,12 @@ namespace proyectonew.Application.Services
     public class NotificacionService : INotificacionService
     {
         private readonly SivDbContext _context;
+        private readonly IAuditoriaService _auditoriaService;
 
-        public NotificacionService(SivDbContext context)
+        public NotificacionService(SivDbContext context, IAuditoriaService auditoriaService)
         {
             _context = context;
+            _auditoriaService = auditoriaService;
         }
 
         public async Task<List<NotificacionDto>> ObtenerTodosAsync()
@@ -74,6 +76,9 @@ namespace proyectonew.Application.Services
 
             notificacion.Leida = true;
             await _context.SaveChangesAsync();
+
+            await _auditoriaService.RegistrarAsync(
+                "Actualizar", "Notificaciones", $"Notificación {notificacion.NotificacionId} marcada como leída.");
         }
 
         public async Task GenerarNotificacionesPorCambioAsync(int vueloId, string mensaje)
@@ -99,6 +104,10 @@ namespace proyectonew.Application.Services
 
             _context.Notificaciones.AddRange(notificaciones);
             await _context.SaveChangesAsync();
+
+            await _auditoriaService.RegistrarAsync(
+                "Generar", "Notificaciones",
+                $"Se generaron {interesados.Count} notificación(es) para el vuelo {vueloId}.");
         }
     }
 }

@@ -13,6 +13,7 @@
             <th>Origen</th>
             <th>Destino</th>
             <th>Horario</th>
+            <th>Puerta</th>
             <th>Estado</th>
             <th>Acciones</th>
         </tr>
@@ -21,11 +22,12 @@
         @foreach (var vuelo in Model.Vuelos)
         {
             <tr>
-                <td>@vuelo.NumeroVuelo</td>b 
+                <td>@vuelo.NumeroVuelo</td>
                 <td>@vuelo.AerolineaId</td>
                 <td>@vuelo.AeropuertoOrigenId</td>
                 <td>@vuelo.AeropuertoDestinoId</td>
                 <td>@vuelo.HorarioProgramado</td>
+                <td>@(string.IsNullOrWhiteSpace(vuelo.Puerta) ? "Sin asignar" : vuelo.Puerta)</td>
                 <td>@vuelo.EstadoVueloId</td>
                 <td>
                     <a href="/Vuelos/Editar?id=@vuelo.VueloId" class="btn btn-sm btn-warning">Editar</a>

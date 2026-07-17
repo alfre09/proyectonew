@@ -43,8 +43,15 @@ namespace proyectonew.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _vueloService.CrearAsync(vueloDto);
-            return StatusCode(201, new { mensaje = "Vuelo creado correctamente", vuelo = vueloDto });
+            try
+            {
+                await _vueloService.CrearAsync(vueloDto);
+                return StatusCode(201, new { mensaje = "Vuelo creado correctamente", vuelo = vueloDto });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // PUT: api/vuelos/5
@@ -58,8 +65,15 @@ namespace proyectonew.Controllers
             if (existente == null)
                 return NotFound(new { mensaje = $"No se encontró el vuelo con id {id}" });
 
-            await _vueloService.ActualizarAsync(vueloDto);
-            return Ok(new { mensaje = "Vuelo actualizado correctamente" });
+            try
+            {
+                await _vueloService.ActualizarAsync(vueloDto);
+                return Ok(new { mensaje = "Vuelo actualizado correctamente" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // DELETE: api/vuelos/5

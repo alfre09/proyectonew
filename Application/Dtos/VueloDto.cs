@@ -18,6 +18,8 @@ namespace proyectonew.Application.Dtos
 
         public DateTime HorarioProgramado { get; set; }
 
+        public string? Puerta { get; set; }
+
         public int EstadoVueloId { get; set; }
 
         public DateTime FechaCreacion { get; set; }

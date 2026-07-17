@@ -42,13 +42,20 @@ namespace proyectonew.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _seguimientoService.CrearAsync(seguimientoDto);
-
-            return StatusCode(201, new
+            try
             {
-                mensaje = "Seguimiento creado correctamente",
-                seguimiento = seguimientoDto
-            });
+                await _seguimientoService.CrearAsync(seguimientoDto);
+
+                return StatusCode(201, new
+                {
+                    mensaje = "Seguimiento creado correctamente",
+                    seguimiento = seguimientoDto
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // PUT: api/Seguimientos/5
@@ -69,12 +76,19 @@ namespace proyectonew.Controllers
                     mensaje = $"No se encontró el seguimiento con id {id}"
                 });
 
-            await _seguimientoService.ActualizarAsync(seguimientoDto);
-
-            return Ok(new
+            try
             {
-                mensaje = "Seguimiento actualizado correctamente"
-            });
+                await _seguimientoService.ActualizarAsync(seguimientoDto);
+
+                return Ok(new
+                {
+                    mensaje = "Seguimiento actualizado correctamente"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         // DELETE: api/Seguimientos/5

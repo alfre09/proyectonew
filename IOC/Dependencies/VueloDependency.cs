@@ -12,6 +12,9 @@ namespace proyectonew.IOC.Dependencies
             services.AddScoped<INotificacionService, NotificacionService>();
             services.AddScoped<IHistorialEstadoVueloService, HistorialEstadoVueloService>();
             services.AddScoped<ICambioOperativoService, CambioOperativoService>();
+            services.AddScoped<IAerolineaService, AerolineaService>();
+            services.AddScoped<IAeropuertoService, AeropuertoService>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             return services;
         }

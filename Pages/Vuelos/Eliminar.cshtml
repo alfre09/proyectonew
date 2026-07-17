@@ -1,0 +1,20 @@
+﻿@page
+@model proyectonew.Pages.Vuelos.EliminarModel
+
+<h2>Eliminar Vuelo</h2>
+
+<p>¿Estás seguro de que deseas eliminar el vuelo <strong>@Model.Vuelo.NumeroVuelo</strong>?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Horario Programado</dt>
+    <dd class="col-sm-9">@Model.Vuelo.HorarioProgramado</dd>
+
+    <dt class="col-sm-3">Puerta</dt>
+    <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Vuelo.Puerta) ? "Sin asignar" : Model.Vuelo.Puerta)</dd>
+</dl>
+
+<form method="post">
+    <input type="hidden" asp-for="Vuelo.VueloId" />
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a href="/Vuelos/Index" class="btn btn-secondary">Cancelar</a>
+</form>
