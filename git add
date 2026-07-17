@@ -1,0 +1,15 @@
+warning: in the working copy of 'Program.cs', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/Program.cs b/Program.cs[m
+[1mindex 7a32134..9f2d312 100644[m
+[1m--- a/Program.cs[m
+[1m+++ b/Program.cs[m
+[36m@@ -12,6 +12,9 @@[m [mbuilder.Services.AddRazorPages();[m
+ builder.Services.AddDbContext<SivDbContext>(options =>[m
+     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));[m
+ [m
+[32m+[m[32m// Inyección de dependencias de la capa de persistencia (repositorios)[m
+[32m+[m[32mbuilder.Services.AddPersistenceDependencies();[m
+[32m+[m
+ // Inyección de dependencias de la capa de aplicación (servicios del SIV)[m
+ builder.Services.AddVueloDependencies();[m
+ [m

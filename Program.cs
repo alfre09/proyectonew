@@ -12,6 +12,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<SivDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Inyección de dependencias de la capa de persistencia (repositorios)
+builder.Services.AddPersistenceDependencies();
+
 // Inyección de dependencias de la capa de aplicación (servicios del SIV)
 builder.Services.AddVueloDependencies();
 
